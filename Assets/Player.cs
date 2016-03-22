@@ -181,7 +181,7 @@ public class Player : MonoBehaviour {
 
     void OnDestroy()
     {
-        Application.LoadLevel(0);
+        Game.game.Restart();        
     }
     
 }
