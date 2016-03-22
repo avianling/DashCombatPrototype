@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class Entity : MonoBehaviour {
 
@@ -10,6 +11,8 @@ public class Entity : MonoBehaviour {
     public float radius;
 
     public Knockback knockback;
+
+    public  event Action onDamage;
 
     public GameObject deadVersion;
 
@@ -24,6 +27,9 @@ public class Entity : MonoBehaviour {
         Game.Slow();
         Game.ShowHit(0.5f * (transform.position + attacker.transform.position));
         knockback.KnockBack(damage * 30f, attacker);
+
+        if (onDamage != null) onDamage();
+
         if ( health <= 0 )
         {
             Die();
@@ -43,6 +49,7 @@ public class Entity : MonoBehaviour {
                 knockback.knockbackStrength = this.knockback.knockbackStrength;
             }
         }
+        onDamage = null;
         this.knockback.Die();
         Destroy(gameObject);
         // transfer the settings from our knockback to their knockback.

@@ -16,6 +16,10 @@ public class Player : MonoBehaviour {
     private float invulnerable;
 
     public float attackRange;
+    internal int chainCount;
+    private float timeOfLastHit;
+
+    float chainExpireTime = 2f;
 
     public void MoveTo(Vector3 temp)
     {
@@ -31,6 +35,7 @@ public class Player : MonoBehaviour {
         fightCircle = gameObject.AddComponent<FightCircle>();
         fightCircle.focus = entity;
         moveTarget = transform.position;
+        entity.onDamage += OnDamage;
     }
 
     void Update()
@@ -44,7 +49,14 @@ public class Player : MonoBehaviour {
         {
             return;
         }
-
+        
+        // check to see if chain has expired...
+        // (allow slight extension if already dashing)
+        if ((Time.realtimeSinceStartup - timeOfLastHit) > chainExpireTime)
+        {
+            chainCount = 0;
+        }
+        
         if (!entity.knockback.stunned)
         {
             // move towards our target!
@@ -57,7 +69,8 @@ public class Player : MonoBehaviour {
                 {
                     StepTowards(attackTarget.transform.position);
                 }
-            } else
+            }
+            else
             {
                 if ( transform.position != moveTarget )
                 {
@@ -91,20 +104,6 @@ public class Player : MonoBehaviour {
         return length < attackRange;
     }
 
-    IEnumerator LerpTo( Vector3 target, float duration )
-    {
-        float time = 0f;
-        Vector3 localPos = transform.position;
-        while ( time < duration )
-        {
-            transform.position = Vector3.Lerp(localPos, target, time / duration);
-            time += Time.deltaTime;
-            yield return 0;
-        }
-        transform.position = target;
-        yield break;
-    }
-
     IEnumerator WalkTo( Vector3 target, float speed )
     {
         while ( transform.position != target )
@@ -133,7 +132,7 @@ public class Player : MonoBehaviour {
         Vector3 direction = attackTarget.transform.position - transform.position;
         float length = direction.magnitude;
         direction /= length;
-
+        
         if ( length > attackRange )
         {
             // out of attack range.
@@ -142,23 +141,47 @@ public class Player : MonoBehaviour {
         {
             dashing = true;
 
-            // super quick dash to just in front of the target?
+            // super quick dash to just in front of the target
             Vector3 desiredPosition = attackTarget.transform.position - direction * (entity.radius + attackTarget.radius);
-            yield return StartCoroutine(WalkTo(desiredPosition, 25f));
+
+            yield return StartCoroutine(WalkTo(desiredPosition, GetDashSpeed()));
+
             attackTarget.Damage(entity.damage, entity);
+            chainCount++;
+            timeOfLastHit = Time.realtimeSinceStartup;
+
             dashing = false;
             invulnerable = 0.2f;
-            // stop moving yo
+            // stop moving
             attackTarget = null;
             moveTarget = transform.position;
         }
+    }
+    
+    float GetDashSpeed()
+    {
+        if (chainCount >= 50) return 35;
+        else if (chainCount >= 20) return 25;
+        else if (chainCount >= 10) return 20;
+        return 15f;
+    }
+
+    float GetDamage()
+    {
+        if (chainCount >= 50) return 4;
+        else if (chainCount >= 20) return 3;
+        else if (chainCount >= 10) return 2;
+        return 1;
+    }
+
+    void OnDamage()
+    {
+        chainCount = 0;
     }
 
     void OnDestroy()
     {
         Application.LoadLevel(0);
     }
-
-
-
+    
 }

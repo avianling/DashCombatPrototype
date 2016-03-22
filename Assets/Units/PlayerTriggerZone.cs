@@ -7,7 +7,7 @@ public class PlayerTriggerZone : MonoBehaviour {
 
     void Update()
     {
-        Debug.Log(PlayerInZone);
+        //Debug.Log(PlayerInZone);
     }
 
     void OnTriggerEnter2D(Collider2D other )

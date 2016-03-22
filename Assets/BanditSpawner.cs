@@ -7,6 +7,10 @@ public class BanditSpawner : MonoBehaviour {
     public GameObject prefab;
     public GameObject hightwayman;
 
+    int waveIndex = 0;
+
+    private CombatGroup combatGroup = new CombatGroup();
+
     [System.Serializable]
     public class Wave
     {
@@ -20,8 +24,9 @@ public class BanditSpawner : MonoBehaviour {
 
     public IEnumerator CreateWave()
     {
-        Wave wave = waves[0];
-        waves.RemoveAt(0);
+        Wave wave = waves[waveIndex];
+        waveIndex = (waveIndex + 1) % (waves.Count - 1);
+        //waves.RemoveAt(0);
 
         for ( int i=0; i < wave.bandits; i++ )
         {
@@ -79,11 +84,17 @@ public class BanditSpawner : MonoBehaviour {
         pos.z = 0;
         obj.transform.position = pos;
 
+        var enemy = obj.GetComponent<Enemy>();
+        if (enemy != null) combatGroup.Add(enemy);
+
         return obj;
     }
 	
 	// Update is called once per frame
 	void Update () {
+
+        combatGroup.Update();
+
         if (waves.Count > 0)
         {
             creatures.RemoveAll(creature => creature == null);

@@ -9,4 +9,10 @@ public class SlasherRedirector : MonoBehaviour {
     {
         slasher.transform.position += transform.up * distance * Time.deltaTime;
     }
+
+    public void AttackComplete()
+    {
+        slasher.OnAttackComplete();
+    }
+
 }
